@@ -22,7 +22,7 @@
   <h3 align="center">Microprocessor Lab Homework</h3>
 
   <p align="center">
-    Homework given to the students in Shahid Beheshti University Microprocessor Lab in Fall 2020 term.
+    Homework given to the students in Shahid Beheshti University Microprocessor Lab in the Fall 2020 term.
     <br />
     Parsa Hejabi | Niki Nazaran
     <!-- <br />
@@ -60,7 +60,7 @@
 
 ## About The Repo
 
-This repository has the homework given to the students in Shahid Beheshti University Microprocessor Lab in Fall 2020 term.
+This repository has the homework given to the students in Shahid Beheshti University Microprocessor Lab in the Fall 2020 term.
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
@@ -147,7 +147,7 @@ Distributed under the MIT License. See `LICENSE` for more information. -->
 
 ## Contact
 
-Your Name - [@callme_parsa](https://twitter.com/callme_parsa)
+Parsa Hejabi - [@callme_parsa](https://twitter.com/callme_parsa)
 
 <!-- - email -->
 
@@ -172,7 +172,7 @@ Project Link: [https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignme
 [issues-shield]: https://img.shields.io/github/issues/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
 [issues-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/issues
 [license-shield]: https://img.shields.io/github/license/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
-[license-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/blob/master/LICENSE.txt
+[license-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/parsa-hejabi/
 
