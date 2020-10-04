@@ -163,17 +163,17 @@ Project Link: [https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignme
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
+[contributors-shield]: https://img.shields.io/github/contributors/ParsaHejabi/MicroprocessorLab-ComputerAssignments
 [contributors-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
+[forks-shield]: https://img.shields.io/github/forks/ParsaHejabi/MicroprocessorLab-ComputerAssignments
 [forks-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/network/members
-[stars-shield]: https://img.shields.io/github/stars/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
+[stars-shield]: https://img.shields.io/github/stars/ParsaHejabi/MicroprocessorLab-ComputerAssignments
 [stars-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/stargazers
-[issues-shield]: https://img.shields.io/github/issues/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
+[issues-shield]: https://img.shields.io/github/issues/ParsaHejabi/MicroprocessorLab-ComputerAssignments
 [issues-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/issues
-[license-shield]: https://img.shields.io/github/license/ParsaHejabi/MicroprocessorLab-ComputerAssignments.svg?style=flat-square
+[license-shield]: https://img.shields.io/github/license/ParsaHejabi/MicroprocessorLab-ComputerAssignments
 [license-url]: https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments/blob/master/LICENSE
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/parsa-hejabi/
 
 <!-- [product-screenshot]: images/screenshot.png -->
