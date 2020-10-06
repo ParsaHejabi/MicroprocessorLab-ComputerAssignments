@@ -183,3 +183,5 @@ $RECYCLE.BIN/
 **/Objects
 *.uvoptx
 *.docx
+*.pdf
+*.zip
