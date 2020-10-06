@@ -12,7 +12,9 @@ unsigned char operator= '0';
 unsigned char secondNumber[] = {0x00, 0x00};
 unsigned char result[] = {0x00, 0x00};
 unsigned char currentNumber[] = {0x00, 0x00};
+
 int equalIsPressed = 0;
+int initIsPressed = 0;
 int firstRowInput;
 int secondRowInput;
 int thirdRowInput;
@@ -31,6 +33,8 @@ void checkFirstRow(void);
 void checkSecondRow(void);
 void checkThirdRow(void);
 void checkFourthRow(void);
+int strToInt(unsigned char number[]);
+void initVariables(void);
 
 int main(void)
 {
@@ -38,40 +42,106 @@ int main(void)
     initPortA();
     initPortB();
 
-    while (operator== '0')
+    while (1)
     {
-        // print();
-        checkFirstRow();
-        checkSecondRow();
-        checkThirdRow();
-        checkFourthRow();
-    }
-    firstNumber[0] = currentNumber[0];
-    firstNumber[1] = currentNumber[1];
-    firstNumberLength = currentNumberLength;
-    currentNumber[0] = 0x00;
-    currentNumber[1] = 0x00;
-    currentNumberLength = 0;
-    while (!equalIsPressed)
-    {
-        checkFirstRow();
-        checkSecondRow();
-        checkThirdRow();
-        checkFourthRow();
-    }
-    secondNumber[0] = currentNumber[0];
-    secondNumber[1] = currentNumber[1];
-    secondNumberLength = currentNumberLength;
-    currentNumber[0] = 0x00;
-    currentNumber[1] = 0x00;
-    currentNumberLength = 0;
+        initIsPressed = 0;
+        while (operator== '0')
+        {
+            checkFirstRow();
+            checkSecondRow();
+            checkThirdRow();
+            checkFourthRow();
+        }
 
-    // TODO
-    // Do the math and print results
+        firstNumber[0] = currentNumber[0];
+        firstNumber[1] = currentNumber[1];
+        firstNumberLength = currentNumberLength;
+        currentNumber[0] = 0x00;
+        currentNumber[1] = 0x00;
+        currentNumberLength = 0;
 
-    // result[0] = currentNumber[0];
-    // result[1] = currentNumber[1];
-    // print(result[0], result[1]);
+        while (!equalIsPressed)
+        {
+            checkFirstRow();
+            checkSecondRow();
+            checkThirdRow();
+            checkFourthRow();
+
+            if (initIsPressed)
+            {
+                break;
+            }
+        }
+
+        if (initIsPressed)
+        {
+            continue;
+        }
+
+        secondNumber[0] = currentNumber[0];
+        secondNumber[1] = currentNumber[1];
+        secondNumberLength = currentNumberLength;
+        currentNumber[0] = 0x00;
+        currentNumber[1] = 0x00;
+        currentNumberLength = 0;
+
+        switch (operator)
+        {
+        case '*':
+        {
+            int first = strToInt(firstNumber);
+            int second = strToInt(secondNumber);
+            int res = (first * second) % 100;
+            result[0] = res % 10;
+            result[1] = res / 10;
+            currentNumber[0] = result[0];
+            currentNumber[1] = result[1];
+            print(result[0], result[1]);
+            break;
+        }
+        case '/':
+        {
+            int first = strToInt(firstNumber);
+            int second = strToInt(secondNumber);
+            int res = (first / second) % 100;
+            result[0] = res % 10;
+            result[1] = res / 10;
+            currentNumber[0] = result[0];
+            currentNumber[1] = result[1];
+            print(result[0], result[1]);
+            break;
+        }
+        case '-':
+        {
+            int first = strToInt(firstNumber);
+            int second = strToInt(secondNumber);
+            int res = (first - second) % 100;
+            result[0] = res % 10;
+            result[1] = res / 10;
+            currentNumber[0] = result[0];
+            currentNumber[1] = result[1];
+            print(result[0], result[1]);
+            break;
+        }
+        case '+':
+        {
+            int first = strToInt(firstNumber);
+            int second = strToInt(secondNumber);
+            int res = (first + second) % 100;
+            result[0] = res % 10;
+            result[1] = res / 10;
+            currentNumber[0] = result[0];
+            currentNumber[1] = result[1];
+            print(result[0], result[1]);
+            break;
+        }
+        }
+
+        while (!initIsPressed)
+        {
+            checkFourthRow();
+        }
+    }
 }
 
 void init(void)
@@ -190,7 +260,7 @@ void checkFirstRow()
 
 void checkSecondRow()
 {
-    // KPB = 0, Read second row of keypad
+    // Read second row of keypad
     GPIOB_ODR = 0xFFDF;
     secondRowInput = GPIOB_IDR;
     switch (secondRowInput)
@@ -255,7 +325,7 @@ void checkSecondRow()
     }
     case 0xFFD7:
     {
-        // Division = 10
+        // Multiply = 11
         if (buttonPressed != 11)
         {
             if (currentNumberLength == 1 || currentNumberLength == 2)
@@ -280,7 +350,7 @@ void checkSecondRow()
 
 void checkThirdRow()
 {
-    // KPC = 0, Read first row of keypad
+    // Read third row of keypad
     GPIOB_ODR = 0xFFBF;
     thirdRowInput = GPIOB_IDR;
     switch (thirdRowInput)
@@ -368,7 +438,7 @@ void checkThirdRow()
 
 void checkFourthRow()
 {
-    // KPD = 0, Read first row of keypad
+    // Read fourth row of keypad
     GPIOB_ODR = 0xFF7F;
     fourthRowInput = GPIOB_IDR;
     switch (fourthRowInput)
@@ -377,6 +447,8 @@ void checkFourthRow()
     {
         if (buttonPressed != 15)
         {
+            initIsPressed = 1;
+            initVariables();
         }
         buttonPressed = 15;
         break;
@@ -402,10 +474,13 @@ void checkFourthRow()
     }
     case 0xFF7B: // =
     {
-        if (buttonPressed != 14)
+        if (buttonPressed != 13)
         {
+            if ((currentNumberLength == 1 || currentNumberLength == 2) && operator!= '0')
+            {
+                equalIsPressed = 1;
+            }
         }
-        equalIsPressed = 1;
         buttonPressed = 14;
         break;
     }
@@ -431,6 +506,29 @@ void checkFourthRow()
     }
     }
     print(currentNumber[0], currentNumber[1]);
+}
+
+int strToInt(unsigned char number[])
+{
+    return number[1] * 10 + number[0];
+}
+
+void initVariables(void)
+{
+    firstNumber[0] = 0x00;
+    firstNumber[1] = 0x00;
+    operator= '0';
+    secondNumber[0] = 0x00;
+    secondNumber[1] = 0x00;
+    result[0] = 0x00;
+    result[1] = 0x00;
+    currentNumber[0] = 0x00;
+    currentNumber[1] = 0x00;
+
+    equalIsPressed = 0;
+    firstNumberLength = 0;
+    secondNumberLength = 0;
+    currentNumberLength = 0;
 }
 
 /* 16 MHz SYSCLK */
