@@ -8,8 +8,11 @@
 #define GPIOB_ODR (*((volatile unsigned int *)0x40020414))
 
 unsigned char firstNumber[] = {0x00, 0x00};
-unsigned char operator = '0';
+unsigned char operator= '0';
 unsigned char secondNumber[] = {0x00, 0x00};
+unsigned char result[] = {0x00, 0x00};
+unsigned char currentNumber[] = {0x00, 0x00};
+int equalIsPressed = 0;
 int firstRowInput;
 int secondRowInput;
 int thirdRowInput;
@@ -17,12 +20,13 @@ int fourthRowInput;
 int buttonPressed = -1;
 int firstNumberLength = 0;
 int secondNumberLength = 0;
+int currentNumberLength = 0;
 
 void delayMs(int n);
 void init(void);
 void initPortA(void);
 void initPortB(void);
-void print(void);
+void print(unsigned char digit1, unsigned char digit2);
 void checkFirstRow(void);
 void checkSecondRow(void);
 void checkThirdRow(void);
@@ -34,14 +38,40 @@ int main(void)
     initPortA();
     initPortB();
 
-    while (1)
+    while (operator== '0')
     {
-        print();
+        // print();
         checkFirstRow();
-        // checkSecondRow();
-        // checkThirdRow();
-        // checkFourthRow();
+        checkSecondRow();
+        checkThirdRow();
+        checkFourthRow();
     }
+    firstNumber[0] = currentNumber[0];
+    firstNumber[1] = currentNumber[1];
+    firstNumberLength = currentNumberLength;
+    currentNumber[0] = 0x00;
+    currentNumber[1] = 0x00;
+    currentNumberLength = 0;
+    while (!equalIsPressed)
+    {
+        checkFirstRow();
+        checkSecondRow();
+        checkThirdRow();
+        checkFourthRow();
+    }
+    secondNumber[0] = currentNumber[0];
+    secondNumber[1] = currentNumber[1];
+    secondNumberLength = currentNumberLength;
+    currentNumber[0] = 0x00;
+    currentNumber[1] = 0x00;
+    currentNumberLength = 0;
+
+    // TODO
+    // Do the math and print results
+
+    // result[0] = currentNumber[0];
+    // result[1] = currentNumber[1];
+    // print(result[0], result[1]);
 }
 
 void init(void)
@@ -61,20 +91,11 @@ void initPortB(void)
     GPIOB_MODER = 0x00005500;
 }
 
-void print()
+void print(unsigned char digit1, unsigned char digit2) // digit1=yekan, digit2=dahgan
 {
     GPIOA_ODR = 0x0000;
-    if (firstNumberLength != 3)
-    {
-        GPIOA_ODR |= firstNumber[0] << 4;
-        GPIOA_ODR |= firstNumber[1];
-    }
-    else if (secondNumberLength == 0 || secondNumberLength == 1)
-    {
-        GPIOA_ODR |= secondNumber[0] << 4;
-        GPIOA_ODR |= secondNumber[1];
-    }
-    // 1sec/25/4 = 10 milisec
+    GPIOA_ODR |= digit2 << 4;
+    GPIOA_ODR |= digit1;
     delayMs(10);
 }
 
@@ -89,18 +110,16 @@ void checkFirstRow()
     {
         if (buttonPressed != 7)
         {
-            if (firstNumberLength == 0)
+            if (currentNumberLength == 0)
             {
-                firstNumber[0] = 0x07;
-                firstNumberLength++;
+                currentNumber[0] = 0x07;
+                currentNumberLength++;
             }
-            else if (firstNumberLength == 1)
+            else if (currentNumberLength == 1)
             {
-                firstNumber[1] = 0x07;
-                firstNumberLength++;
-            }
-            else
-            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x07;
+                currentNumberLength++;
             }
         }
         buttonPressed = 7;
@@ -110,18 +129,16 @@ void checkFirstRow()
     {
         if (buttonPressed != 8)
         {
-            if (firstNumberLength == 0)
+            if (currentNumberLength == 0)
             {
-                firstNumber[0] = 0x08;
-                firstNumberLength++;
+                currentNumber[0] = 0x08;
+                currentNumberLength++;
             }
-            else if (firstNumberLength == 1)
+            else if (currentNumberLength == 1)
             {
-                firstNumber[1] = 0x08;
-                firstNumberLength++;
-            }
-            else
-            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x08;
+                currentNumberLength++;
             }
         }
         buttonPressed = 8;
@@ -131,18 +148,16 @@ void checkFirstRow()
     {
         if (buttonPressed != 9)
         {
-            if (firstNumberLength == 0)
+            if (currentNumberLength == 0)
             {
-                firstNumber[0] = 0x09;
-                firstNumberLength++;
+                currentNumber[0] = 0x09;
+                currentNumberLength++;
             }
-            else if (firstNumberLength == 1)
+            else if (currentNumberLength == 1)
             {
-                firstNumber[1] = 0x09;
-                firstNumberLength++;
-            }
-            else
-            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x09;
+                currentNumberLength++;
             }
         }
         buttonPressed = 9;
@@ -153,10 +168,10 @@ void checkFirstRow()
         // Division = 10
         if (buttonPressed != 10)
         {
-            if (firstNumberLength == 1 || firstNumberLength == 2)
+            if (currentNumberLength == 1 || currentNumberLength == 2)
             {
-                firstNumberLength = 3;
-                operator = '/';
+                currentNumberLength = 3;
+                operator= '/';
             }
         }
         buttonPressed = 10;
@@ -170,162 +185,252 @@ void checkFirstRow()
         }
     }
     }
+    print(currentNumber[0], currentNumber[1]);
 }
 
 void checkSecondRow()
 {
     // KPB = 0, Read second row of keypad
-    GPIOB_ODR = 0xDFFF;
+    GPIOB_ODR = 0xFFDF;
     secondRowInput = GPIOB_IDR;
     switch (secondRowInput)
     {
-    case 0xDEFF:
+    case 0xFFDE:
     {
         if (buttonPressed != 4)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x04;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x66;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x04;
+                currentNumberLength++;
+            }
         }
         buttonPressed = 4;
         break;
     }
-    case 0xDDFF:
+    case 0xFFDD:
     {
         if (buttonPressed != 5)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x05;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x6D;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x05;
+                currentNumberLength++;
+            }
         }
         buttonPressed = 5;
         break;
     }
-    case 0xDBFF:
+    case 0xFFDB:
     {
+
         if (buttonPressed != 6)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x06;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x7D;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x06;
+                currentNumberLength++;
+            }
         }
         buttonPressed = 6;
         break;
     }
+    case 0xFFD7:
+    {
+        // Division = 10
+        if (buttonPressed != 11)
+        {
+            if (currentNumberLength == 1 || currentNumberLength == 2)
+            {
+                currentNumberLength = 3;
+                operator= '*';
+            }
+        }
+        buttonPressed = 11;
+        break;
+    }
     default:
     {
-        if (buttonPressed == 4 || buttonPressed == 5 || buttonPressed == 6)
+        if (buttonPressed == 4 || buttonPressed == 5 || buttonPressed == 6 || buttonPressed == 11)
         {
             buttonPressed = -1;
         }
     }
     }
+    print(currentNumber[0], currentNumber[1]);
 }
 
 void checkThirdRow()
 {
     // KPC = 0, Read first row of keypad
-    GPIOB_ODR = 0xBFFF;
+    GPIOB_ODR = 0xFFBF;
     thirdRowInput = GPIOB_IDR;
     switch (thirdRowInput)
     {
-    case 0xBEFF:
+    case 0xFFBE:
     {
-        if (buttonPressed != 7)
+        if (buttonPressed != 1)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x01;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x07;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x01;
+                currentNumberLength++;
+            }
         }
-        buttonPressed = 7;
+        buttonPressed = 1;
         break;
     }
-    case 0xBDFF:
+    case 0xFFBD:
     {
-        if (buttonPressed != 8)
+        if (buttonPressed != 2)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x02;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x7F;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x02;
+                currentNumberLength++;
+            }
         }
-        buttonPressed = 8;
+        buttonPressed = 2;
         break;
     }
-    case 0xBBFF:
+    case 0xFFBB:
     {
-        if (buttonPressed != 9)
+        if (buttonPressed != 3)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x03;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x6F;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x03;
+                currentNumberLength++;
+            }
         }
-        buttonPressed = 9;
+        buttonPressed = 3;
+        break;
+    }
+    case 0xFFB7:
+    {
+        if (buttonPressed != 12)
+        {
+            if (currentNumberLength == 1 || currentNumberLength == 2)
+            {
+                currentNumberLength = 3;
+                operator= '-';
+            }
+        }
+        buttonPressed = 12;
         break;
     }
     default:
     {
-        if (buttonPressed == 7 || buttonPressed == 8 || buttonPressed == 9)
+        if (buttonPressed == 1 || buttonPressed == 2 || buttonPressed == 3 || buttonPressed == 12)
         {
             buttonPressed = -1;
         }
     }
     }
+    print(currentNumber[0], currentNumber[1]);
 }
 
 void checkFourthRow()
 {
     // KPD = 0, Read first row of keypad
-    GPIOB_ODR = 0x7FFF;
+    GPIOB_ODR = 0xFF7F;
     fourthRowInput = GPIOB_IDR;
     switch (fourthRowInput)
     {
-    case 0x7DFF:
+    case 0xFF7E: // ON/C
+    {
+        if (buttonPressed != 15)
+        {
+        }
+        buttonPressed = 15;
+        break;
+    }
+    case 0xFF7D: // 0
     {
         if (buttonPressed != 0)
         {
-            // shift
-            int i;
-            for (i = 3; i > 0; i--)
+            if (currentNumberLength == 0)
             {
-                firstNumber[i] = firstNumber[i - 1];
+                currentNumber[0] = 0x00;
+                currentNumberLength++;
             }
-            firstNumber[0] = 0x3F;
+            else if (currentNumberLength == 1)
+            {
+                currentNumber[1] = currentNumber[0];
+                currentNumber[0] = 0x00;
+                currentNumberLength++;
+            }
         }
         buttonPressed = 0;
         break;
     }
+    case 0xFF7B: // =
+    {
+        if (buttonPressed != 14)
+        {
+        }
+        equalIsPressed = 1;
+        buttonPressed = 14;
+        break;
+    }
+    case 0xFF77: // +
+    {
+        if (buttonPressed != 13)
+        {
+            if (currentNumberLength == 1 || currentNumberLength == 2)
+            {
+                currentNumberLength = 3;
+                operator= '+';
+            }
+        }
+        buttonPressed = 13;
+        break;
+    }
     default:
     {
-        if (buttonPressed == 0)
+        if (buttonPressed == 0 || buttonPressed == 13 || buttonPressed == 14 || buttonPressed == 15)
         {
             buttonPressed = -1;
         }
     }
     }
+    print(currentNumber[0], currentNumber[1]);
 }
 
 /* 16 MHz SYSCLK */
