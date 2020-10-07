@@ -1,9 +1,16 @@
 // #include <stm32f4xx.h>
 #define RCC_AHB1ENR (*((volatile unsigned int *)0x40023830))
 #define GPIOA_MODER (*((volatile unsigned int *)0x40020000))
+#define GPIOA_OTYPER (*((volatile unsigned int *)0x40020004))
+#define GPIOA_OSPEEDR (*((volatile unsigned int *)0x40020008))
+#define GPIOA_PUPDR (*((volatile unsigned int *)0x4002000C))
 #define GPIOA_IDR (*((volatile unsigned int *)0x40020010))
 #define GPIOA_ODR (*((volatile unsigned int *)0x40020014))
+
 #define GPIOB_MODER (*((volatile unsigned int *)0x40020400))
+#define GPIOB_OTYPER (*((volatile unsigned int *)0x40020404))
+#define GPIOB_OSPEEDR (*((volatile unsigned int *)0x40020408))
+#define GPIOB_PUPDR (*((volatile unsigned int *)0x4002040C))
 #define GPIOB_IDR (*((volatile unsigned int *)0x40020410))
 #define GPIOB_ODR (*((volatile unsigned int *)0x40020414))
 
@@ -153,12 +160,25 @@ void initPortA(void)
 {
     GPIOA_MODER &= 0x0C000000; /* clear pin mode */
     GPIOA_MODER = 0x55555555;  /* set pin to output mode */
+
+    GPIOA_OTYPER &= 0x00000000; /* clear pin mode */
+
+    GPIOA_OSPEEDR &= 0x0C000000; /* clear pin mode */
+
+    GPIOA_PUPDR &= 0x64000000; /* clear pin mode */
 }
 
 void initPortB(void)
 {
     GPIOB_MODER &= 0x00000280; /* clear pin mode */
     GPIOB_MODER = 0x00005500;
+
+    GPIOB_OTYPER &= 0x00000000; /* clear pin mode */
+
+    GPIOB_OSPEEDR &= 0x0C0000C0; /* clear pin mode */
+
+    GPIOB_PUPDR &= 0x00000100; /* clear pin mode */
+    GPIOB_PUPDR = 0x00000055;  /* first four pins are pull-up ed */
 }
 
 void print(unsigned char digit1, unsigned char digit2) // digit1=yekan, digit2=dahgan
