@@ -53,6 +53,7 @@
 <!-- - [Roadmap](#roadmap) -->
 <!-- - [Contributing](#contributing) -->
 <!-- - [License](#license) -->
+
 - [Contact](#contact)
 <!-- - [Acknowledgements](#acknowledgements) -->
 
@@ -113,6 +114,9 @@ Without using the `#include <stm32f4xx.h>` library and using the datasheets turn
 <!-- HW2 -->
 
 ## HW2
+
+Implemented a calculator with 4 main operators which shows ouput on 2 7Segments.
+
 <!-- USAGE EXAMPLES -->
 
 <!-- ## Usage
