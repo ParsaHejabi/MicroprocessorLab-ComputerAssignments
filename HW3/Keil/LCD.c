@@ -26,6 +26,8 @@ int main()
     /* initialize LCD controller */
     lcdInit(ROW_COUNT);
 
+    lcdPosition(7, 2);
+
     while (1)
     {
         /* Write "hello" on LCD */
@@ -34,6 +36,8 @@ int main()
         lcdPutchar('l');
         lcdPutchar('l');
         lcdPutchar('o');
+
+        lcdPuts(" shit");
         delayMs(1000);
 
         /* clear LCD display */
@@ -61,11 +65,17 @@ void portsInit(void)
     /* PB7 for LCD EN */
     GPIOB->MODER = 0x00000280;  /* clear pin mode */
     GPIOB->MODER |= 0x00005400; /* set pin 5, 6, 7 output mode */
-    GPIOB->BSRR = 0x00C00000;   /* turn off EN and R/W */
+    GPIOB->OTYPER = 0x00000000;
+    GPIOB->OSPEEDR = 0x000000C0;
+    GPIOB->PUPDR = 0x00000100;
+    GPIOB->BSRR = 0x00C00000; /* turn off EN and R/W */
 
     /* PC0-PC7 for LCD D0-D7, respectively. */
-    GPIOC->MODER &= ~0x0000FFFF; /* clear pin mode */
-    GPIOC->MODER |= 0x00005555;  /* set pin output mode */
+    GPIOC->MODER = 0x00000000;  /* clear pin mode */
+    GPIOC->MODER |= 0x00005555; /* set pin output mode */
+    GPIOC->OTYPER = 0x00000000;
+    GPIOC->OSPEEDR = 0x00000000;
+    GPIOC->PUPDR = 0x00000000;
     return;
 }
 
@@ -126,6 +136,35 @@ void lcdSendCommand(unsigned char command)
 
 void lcdPosition(int x, int y)
 {
+    int i = 0;
+    switch (y)
+    {
+    case 1:
+    {
+        lcdSendCommand(0x80);
+        break;
+    }
+    case 2:
+    {
+        lcdSendCommand(0xC0);
+        break;
+    }
+    case 3:
+    {
+        lcdSendCommand(0x90);
+        break;
+    }
+    case 4:
+    {
+        lcdSendCommand(0xD0);
+        break;
+    }
+    }
+
+    for (i = 0; i < x; i++)
+    {
+        lcdSendCommand(0x14);
+    }
     return;
 }
 
@@ -144,5 +183,11 @@ void lcdPutchar(unsigned char data)
 
 void lcdPuts(const char *string)
 {
+    int i = 0;
+    for (i = 0; i < strlen(string); i++)
+    {
+        lcdPutchar(string[i]);
+        delayMs(10);
+    }
     return;
 }

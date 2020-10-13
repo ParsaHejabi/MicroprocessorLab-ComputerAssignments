@@ -48,6 +48,7 @@
   - [Installation](#installation)
 - [HW1](#HW1)
 - [HW2](#HW2)
+- [HW3](#HW3)
 
 <!-- - [Usage](#usage) -->
 <!-- - [Roadmap](#roadmap) -->
@@ -109,13 +110,17 @@ To get a local copy up and running follow these simple steps.
 
 ## HW1
 
-Without using the `#include <stm32f4xx.h>` library and using the datasheets turn on and off a LED every 500 miliseconds.
+Without using the `#include <stm32f4xx.h>` library and using the datasheets, turn on and off a LED every 500 milliseconds.
 
 <!-- HW2 -->
 
 ## HW2
 
-Implemented a calculator with 4 main operators which shows ouput on 2 7Segments.
+We implemented a calculator with four main operators, which shows output on two 7Segments.
+
+## HW3
+
+Wrote different functions to send commands and character data to an LCD. The LCD then shows the characters which have been sent.
 
 <!-- USAGE EXAMPLES -->
 
