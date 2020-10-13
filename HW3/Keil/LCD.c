@@ -1,4 +1,5 @@
 #include <stm32f4xx.h>
+#include <string.h>
 
 #define RS 0x20 /* PB5 mask for reg select */
 #define RW 0x40 /* PB6 mask for read/write */
@@ -6,12 +7,14 @@
 
 #define ROW_COUNT 2
 
+int displayOn = 1;
+int cursorOn = 1;
+
 void delayMs(int n);
-
 void portsInit(void);
-
 int lcdInit(int row);
 void lcdHome(void);
+void lcdClear(void);
 void lcdDisplay(void);
 void lcdCursor(void);
 void lcdCursorBlink(int state);
@@ -23,27 +26,52 @@ void lcdPuts(const char *string);
 int main()
 {
     portsInit();
-    /* initialize LCD controller */
+
     lcdInit(ROW_COUNT);
 
     lcdPosition(7, 2);
 
-    while (1)
-    {
-        /* Write "hello" on LCD */
-        lcdPutchar('h');
-        lcdPutchar('e');
-        lcdPutchar('l');
-        lcdPutchar('l');
-        lcdPutchar('o');
+    lcdPuts("Here");
+    delayMs(1000);
 
-        lcdPuts(" shit");
-        delayMs(1000);
+    lcdHome();
+    delayMs(1000);
 
-        /* clear LCD display */
-        lcdSendCommand(1);
-        delayMs(500);
-    }
+    lcdPutchar('h');
+    lcdPutchar('o');
+    lcdPutchar('m');
+    lcdPutchar('e');
+    delayMs(1000);
+
+    lcdClear();
+    delayMs(2000);
+
+    lcdPuts("Disp off");
+    delayMs(1000);
+    lcdDisplay();
+    delayMs(1000);
+
+    lcdPuts("NOOO");
+    delayMs(1000);
+
+    lcdDisplay();
+    delayMs(1000);
+
+    lcdClear();
+    delayMs(2000);
+
+    lcdPuts("blink");
+    delayMs(1000);
+    lcdCursorBlink(0);
+    delayMs(4000);
+
+    lcdClear();
+    delayMs(2000);
+
+    lcdPuts("cursor");
+    delayMs(1000);
+    lcdCursor();
+    delayMs(4000);
 }
 
 /* delay n milliseconds (16 MHz CPU clock) */
@@ -101,21 +129,56 @@ int lcdInit(int row)
 
 void lcdHome(void)
 {
+    lcdSendCommand(0x02);
+    return;
+}
+
+void lcdClear(void)
+{
+    lcdSendCommand(0x01);
     return;
 }
 
 void lcdDisplay(void)
 {
+    if (displayOn)
+    {
+        displayOn = 0;
+        lcdSendCommand(0x08); /* display off, cursor off, blink off */
+    }
+    else
+    {
+        displayOn = 1;
+        lcdSendCommand(0x0F);
+    }
     return;
 }
 
 void lcdCursor(void)
 {
+    if (cursorOn)
+    {
+        cursorOn = 0;
+        lcdSendCommand(0x0C);
+    }
+    else
+    {
+        cursorOn = 1;
+        lcdSendCommand(0x0F);
+    }
     return;
 }
 
 void lcdCursorBlink(int state)
 {
+    if (state)
+    {
+        lcdSendCommand(0x0F);
+    }
+    else
+    {
+        lcdSendCommand(0x0E);
+    }
     return;
 }
 
