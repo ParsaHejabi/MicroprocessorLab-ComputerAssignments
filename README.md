@@ -49,6 +49,7 @@
 - [HW1](#HW1)
 - [HW2](#HW2)
 - [HW3](#HW3)
+- [HW4](#HW4)
 
 <!-- - [Usage](#usage) -->
 <!-- - [Roadmap](#roadmap) -->
@@ -121,6 +122,10 @@ We implemented a calculator with four main operators, which shows output on two 
 ## HW3
 
 Wrote different functions to send commands and character data to an LCD. The LCD then shows the characters which have been sent.
+
+## HW4
+
+A graphical LCD is programmed with different functions using `STM32CubeMX`.
 
 <!-- USAGE EXAMPLES -->
 
