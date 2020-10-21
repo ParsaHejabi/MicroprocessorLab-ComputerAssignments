@@ -181,8 +181,9 @@ $RECYCLE.BIN/
 **/Listings
 **/RTE
 **/Objects
-**/Core
-**/Drivers
+!**/CMSIS/*
+**/CMSIS/*
+!**/CMSIS/Device
 *.mxproject
 *.uvoptx
 *.docx
