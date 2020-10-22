@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
 #include "FONT.h"
 /* USER CODE END Includes */
 
@@ -90,7 +91,6 @@ void setGrCursor(int select, unsigned char page, unsigned char pixel);
 int glcdPutchar(int select, const char c);
 void glcdPuts(int select, const char *string);
 void glcdWrite(int select, unsigned char data, int rs);
-void glcdPutCommand(unsigned char command);
 
 /* USER CODE END PFP */
 
@@ -132,15 +132,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  setGrCursor(0, 0, 0);
   setGrCursor(1, 1, 0);
   glcdPuts(1, "Niki Nazaran 95243067 & Parsa Hejabi 95243019");
   HAL_Delay(500);
   scrollUp();
+
+  for (int i = 0; i < 6; i++)
+  {
+    clearPixel(1, 0, i);
+  }
   while (1)
   {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -281,14 +284,14 @@ int GlcdInit(const int rows, const int cols, const int rw, const int res,
 
 void set_x_address(int select, unsigned char pixel)
 {
-  unsigned char command = 0x40 + pixel;
+  unsigned char command = GLCD_CMD_SET_X + pixel;
   glcdWrite(select, command, 0);
   currPixel = pixel;
 }
 
 void set_line_no(int select, unsigned char page)
 {
-  unsigned char command = 0xB8 + page;
+  unsigned char command = GLCD_CMD_SET_LINE_NUMBER + page;
   glcdWrite(select, command, 0);
   currPage = page;
 }
