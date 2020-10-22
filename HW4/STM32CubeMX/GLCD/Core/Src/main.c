@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "FONT.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +37,7 @@
 #define GLCD_WIDTH 64
 #define GLCD_HEIGHT 128
 #define GLCD_DISPLAY_ON 0x3f
-#define GLCD_DISPLAY_OF 0x3e
+#define GLCD_DISPLAY_OFF 0x3e
 #define GLCD_CMD_SET_X 0x40
 #define GLCD_CMD_SET_LINE_NUMBER 0xB8
 #define GLCD_CMD_START 0xC0
@@ -64,6 +64,12 @@ struct GlcdDataStruct
 
 struct GlcdDataStruct GlcdData;
 
+unsigned char pixelValue_c1[8][64];
+unsigned char pixelValue_c2[8][64];
+unsigned char currPage;
+unsigned char currPixel;
+int currSel = 1;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,17 +80,17 @@ int GlcdInit(const int rows, const int cols, const int rw, const int res,
              const int e, const int di, const int CS1, const int CS2,
              const int d0, const int d1, const int d2, const int d3,
              const int d4, const int d5, const int d6, const int d7);
-void set_x_address(unsigned char, unsigned char);
-void set_line_no(unsigned char, unsigned char);
+void set_x_address(int, unsigned char);
+void set_line_no(int, unsigned char);
 void update(void);
 void cls(void);
-void clearPixel(unsigned char, unsigned char);
+void clearPixel(int select, unsigned char page, unsigned char pixel);
 void scrollUp(void);
-void setGrCursor(unsigned char, unsigned char);
-int glcdPutchar(const char c);
-void glcdPuts(const char *string);
-void glcdCommand(int select, unsigned char command);
-void glcdData(int select, unsigned char data);
+void setGrCursor(int select, unsigned char page, unsigned char pixel);
+int glcdPutchar(int select, const char c);
+void glcdPuts(int select, const char *string);
+void glcdWrite(int select, unsigned char data, int rs);
+void glcdPutCommand(unsigned char command);
 
 /* USER CODE END PFP */
 
@@ -121,18 +127,20 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-  // GlcdInit();
+  GlcdInit(0, 0, GPIO_PIN_8, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_9, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  setGrCursor(0, 0, 0);
+  setGrCursor(1, 1, 0);
+  glcdPuts(1, "Niki Nazaran 95243067 & Parsa Hejabi 95243019");
+  HAL_Delay(500);
+  scrollUp();
   while (1)
   {
     /* USER CODE END WHILE */
-    // HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
-    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
-    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
-    // HAL_Delay(500);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -225,10 +233,10 @@ int GlcdInit(const int rows, const int cols, const int rw, const int res,
 {
   int i;
 
-  if ((rows < 0) || (rows > 64))
+  if ((rows < 0) || (rows > 63))
     return -1;
 
-  if ((cols < 0) || (cols > 128))
+  if ((cols < 0) || (cols > 127))
     return -1;
 
   GlcdData.rw = rw;
@@ -245,7 +253,7 @@ int GlcdInit(const int rows, const int cols, const int rw, const int res,
   GlcdData.dataPins[4] = d4;
   GlcdData.dataPins[5] = d5;
   GlcdData.dataPins[6] = d6;
-  GlcdData.dataPins[8 - 1] = d7;
+  GlcdData.dataPins[7] = d7;
 
   for (i = 0; i < 8; i++)
   {
@@ -253,43 +261,43 @@ int GlcdInit(const int rows, const int cols, const int rw, const int res,
   }
 
   HAL_GPIO_WritePin(GPIOA, GlcdData.rs, GPIO_PIN_RESET);
-
   HAL_GPIO_WritePin(GPIOA, GlcdData.rw, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOA, GlcdData.res, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOA, GlcdData.e, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOA, GlcdData.cs1, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOA, GlcdData.cs2, GPIO_PIN_RESET);
-  HAL_Delay(5);
-
-  HAL_GPIO_WritePin(GPIOA, GlcdData.res, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.res, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.e, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.cs1, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.cs2, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.res, GPIO_PIN_SET);
   HAL_Delay(50);
 
-  glcdCommand(0, GLCD_DISPLAY_ON);
-  glcdCommand(1, GLCD_DISPLAY_ON);
-  glcdCommand(0, GLCD_CMD_START);
-  glcdCommand(1, GLCD_CMD_START);
+  glcdWrite(0, GLCD_CMD_START, 0);
+  glcdWrite(1, GLCD_CMD_START, 0);
+  glcdWrite(0, GLCD_DISPLAY_ON, 0);
+  glcdWrite(1, GLCD_DISPLAY_ON, 0);
 
-  update();
+  cls();
 
   return 1;
 }
 
-// char select?!! char pixel?!!
-void set_x_address(unsigned char select, unsigned char pixel)
+void set_x_address(int select, unsigned char pixel)
 {
-  return;
+  unsigned char command = 0x40 + pixel;
+  glcdWrite(select, command, 0);
+  currPixel = pixel;
 }
 
-void set_line_no(unsigned char select, unsigned char page)
+void set_line_no(int select, unsigned char page)
 {
-  return;
+  unsigned char command = 0xB8 + page;
+  glcdWrite(select, command, 0);
+  currPage = page;
 }
 
 void update()
 {
   unsigned char x, y;
 
-  for (y = 0; y < 128; y++)
+  for (y = 0; y < 8; y++)
   {
     set_line_no(0, y);
     set_line_no(1, y);
@@ -297,8 +305,8 @@ void update()
     set_x_address(1, 0);
     for (x = 0; x < 64; x++)
     {
-      glcdData(0, 0);
-      glcdData(1, 0);
+      glcdWrite(0, pixelValue_c1[y][x], 1);
+      glcdWrite(1, pixelValue_c2[y][x], 1);
     }
   }
 
@@ -307,43 +315,136 @@ void update()
 
 void cls(void)
 {
+  unsigned char x, y;
+
+  for (y = 0; y < 8; y++)
+  {
+    set_line_no(0, y);
+    set_line_no(1, y);
+    set_x_address(0, 0);
+    set_x_address(1, 0);
+    for (x = 0; x < 64; x++)
+    {
+      glcdWrite(0, 0, 1);
+      glcdWrite(1, 0, 1);
+    }
+  }
+
   return;
 }
 
-// Really chars?!!
-void clearPixel(unsigned char x, unsigned char y)
+void clearPixel(int select, unsigned char page, unsigned char pixel)
 {
+  setGrCursor(select, page, pixel);
+  glcdWrite(select, 0, 1);
   return;
 }
 
 void scrollUp(void)
 {
+  int i, j;
+  for (i = 1; i < 8; i++)
+  {
+    for (j = 0; j < 64; j++)
+    {
+      pixelValue_c1[i - 1][j] = pixelValue_c1[i][j];
+      pixelValue_c2[i - 1][j] = pixelValue_c2[i][j];
+    }
+  }
+  for (i = 0; i < 64; i++)
+  {
+    pixelValue_c1[7][i] = 0x00;
+    pixelValue_c2[7][i] = 0x00;
+  }
+
+  update();
   return;
 }
 
-// Really chars?!!
-void setGrCursor(unsigned char x, unsigned char y)
+void setGrCursor(int select, unsigned char page, unsigned char pixel)
 {
+  set_line_no(select, page);
+  set_x_address(select, pixel);
   return;
 }
 
-int glcdPutchar(const char c)
+int glcdPutchar(int select, const char c)
 {
+  int index = (c - 32) * 5, i;
+  for (i = 0; i < 5; i++)
+  {
+    glcdWrite(currSel, font[index + i], 1);
+    if (currSel == 0)
+      pixelValue_c1[currPage][currPixel] = font[index + i];
+    else
+      pixelValue_c2[currPage][currPixel] = font[index + i];
+
+    currPixel++;
+    if (currPixel == 64)
+    {
+      currPixel = 0;
+      if (currSel == 1)
+        currSel = 0;
+
+      else
+      {
+        currSel = 1;
+        currPage++;
+      }
+      setGrCursor(currSel, currPage, currPixel);
+    }
+  }
+  HAL_Delay(1);
   return 0;
 }
 
-void glcdPuts(const char *string)
+void glcdPuts(int select, const char *string)
 {
+  int i = 0;
+  currSel = select;
+  for (i = 0; i < strlen(string); i++)
+  {
+    glcdPutchar(currSel, string[i]);
+  }
   return;
 }
 
-void glcdCommand(int select, unsigned char command)
+void glcdWrite(int select, unsigned char data, int rs)
 {
-  return;
-}
+  int i;
+  HAL_GPIO_WritePin(GPIOB, GlcdData.e, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.e, GPIO_PIN_RESET);
 
-void glcdData(int select, unsigned char data)
-{
+  if (select == 0)
+  {
+    HAL_GPIO_WritePin(GPIOB, GlcdData.cs1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GlcdData.cs2, GPIO_PIN_SET);
+  }
+  else
+  {
+    HAL_GPIO_WritePin(GPIOB, GlcdData.cs2, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GlcdData.cs1, GPIO_PIN_SET);
+  }
+
+  HAL_GPIO_WritePin(GPIOA, GlcdData.rw, GPIO_PIN_RESET);
+
+  if (rs == 1)
+    HAL_GPIO_WritePin(GPIOA, GlcdData.rs, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(GPIOA, GlcdData.rs, GPIO_PIN_RESET);
+
+  HAL_GPIO_WritePin(GPIOB, GlcdData.e, GPIO_PIN_SET);
+
+  for (i = 0; i < 8; i++)
+  {
+    HAL_GPIO_WritePin(GPIOA, GlcdData.dataPins[i], data & 0x01);
+    data = data >> 1;
+  }
+
+  HAL_Delay(1);
+  HAL_GPIO_WritePin(GPIOB, GlcdData.e, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GlcdData.rw, GPIO_PIN_SET);
+
   return;
 }
 /* USER CODE END 4 */
