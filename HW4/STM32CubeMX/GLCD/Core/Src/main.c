@@ -133,7 +133,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   setGrCursor(1, 1, 0);
-  glcdPuts(1, "Niki Nazaran 95243067 & Parsa Hejabi 95243019");
+  glcdPuts(1, "Niki Nazaran 95243067 & Parsa Hejabi 95243019 & Alireza Mahdi Barzi 96243087");
   HAL_Delay(500);
   scrollUp();
 
