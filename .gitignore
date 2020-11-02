@@ -189,3 +189,7 @@ $RECYCLE.BIN/
 *.docx
 *.pdf
 *.zip
+*.crf
+*.sct
+*.htm
+*.axf
