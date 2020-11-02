@@ -44,19 +44,19 @@
 - [About the Repo](#about-the-repo)
   - [Built With](#built-with)
 - [Getting Started](#getting-started)
-  <!-- - [Prerequisites](#prerequisites) -->
   - [Installation](#installation)
 - [HW1](#HW1)
 - [HW2](#HW2)
 - [HW3](#HW3)
 - [HW4](#HW4)
+- [Contact](#contact)
+
+  <!-- - [Prerequisites](#prerequisites) -->
 
 <!-- - [Usage](#usage) -->
 <!-- - [Roadmap](#roadmap) -->
 <!-- - [Contributing](#contributing) -->
 <!-- - [License](#license) -->
-
-- [Contact](#contact)
 <!-- - [Acknowledgements](#acknowledgements) -->
 
 <!-- ABOUT THE PROJECT -->
@@ -76,6 +76,7 @@ This repository has the homework given to the students in Shahid Beheshti Univer
 - [Proteus Design Suite](https://www.labcenter.com/)
 - [Keil embedded development tools for ARM](https://www.keil.com/)
 - C language
+- [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
 
 <!-- GETTING STARTED -->
 
