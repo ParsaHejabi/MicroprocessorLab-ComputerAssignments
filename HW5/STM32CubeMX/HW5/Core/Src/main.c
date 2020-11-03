@@ -32,6 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define STRING_LENGTH 20
+#define USERS_LENGTH 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,7 +45,22 @@
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+struct User
+{
+  char username[STRING_LENGTH];
+  char password[STRING_LENGTH];
+};
 
+struct User users[USERS_LENGTH];
+uint8_t menu[] = "1- Sign up\r\n2- Sign in\r\n";
+uint8_t invalidInputError[] = "Invalid input! Try Again!";
+uint8_t debug[] = "DEBUG";
+uint8_t input;
+uint8_t bufferRX[STRING_LENGTH];
+int bufferIndex = 0;
+
+// 0 -> get menu; 1 -> get username; 2 -> get password;
+int state = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -51,12 +68,41 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void signUp(void);
+void signIn(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  // bufferRX[0] = input;
 
+  // HAL_UART_Transmit(&huart1, &input, sizeof(input), HAL_MAX_DELAY);
+  // HAL_Delay(500);
+
+  HAL_UART_Transmit(&huart1, bufferRX, sizeof(bufferRX), HAL_MAX_DELAY);
+  HAL_Delay(500);
+
+  // if (state == 0)
+  // {
+  //   HAL_UART_Transmit(&huart1, "DEBUG0", 6, HAL_MAX_DELAY);
+  //   HAL_Delay(500);
+  //   if (bufferRX[0] == '1')
+  //   {
+  //     state = 1;
+  //   }
+  //   else if (bufferRX[0] == '2')
+  //   {
+  //     state = 2;
+  //   }
+  //   else
+  //   {
+  //     state = 0;
+  //   }
+  //   bufferIndex = 0;
+  // }
+}
 /* USER CODE END 0 */
 
 /**
@@ -89,15 +135,25 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    HAL_UART_Receive_IT(&huart1, bufferRX, sizeof(bufferRX));
+    HAL_Delay(500);
     /* USER CODE END WHILE */
+    // state = 0;
 
+    HAL_UART_Transmit(&huart1, menu, sizeof(menu), HAL_MAX_DELAY);
+    HAL_Delay(500);
+
+    // while (state == 0)
+    // {
+    //   HAL_UART_Receive_IT(&huart1, &input, sizeof(input));
+    //   HAL_Delay(500);
+    // }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -129,8 +185,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -172,7 +227,6 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
@@ -197,11 +251,19 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 }
 
 /* USER CODE BEGIN 4 */
+void signUp(void)
+{
+  uint8_t username[] = "Enter username: ";
+  HAL_UART_Transmit(&huart1, username, sizeof(username), HAL_MAX_DELAY);
+  HAL_Delay(500);
+}
 
+void signIn(void)
+{
+}
 /* USER CODE END 4 */
 
 /**
@@ -216,7 +278,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
