@@ -58,9 +58,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define keyDown_Pin GPIO_PIN_13
-#define keyDown_GPIO_Port GPIOC
-#define keyDown_EXTI_IRQn EXTI15_10_IRQn
+#define DEBUG_LED_Pin GPIO_PIN_0
+#define DEBUG_LED_GPIO_Port GPIOA
 #define USART1_TX_Pin GPIO_PIN_9
 #define USART1_TX_GPIO_Port GPIOA
 #define USART1_RX_Pin GPIO_PIN_10
