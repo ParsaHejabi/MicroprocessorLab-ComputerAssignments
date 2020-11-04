@@ -43,15 +43,48 @@
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+struct User
+{
+  char username[20];
+  char password[20];
+};
+struct User users[20];
 uint8_t menu[] = "1- Sign up\r\n2- Sign in\r\n";
 uint8_t input;
+char temp[20];
+uint8_t tempIndex = 0;
+int i, j;
+int usersIndex = 0;
+// 0 -> get menu; 1 -> SU username; 2 -> SU password; 3 -> SI username; 4 -> SI password;
+int state = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
+int stringComp(char[], char[]);
+void resetTemp(void);
 /* USER CODE BEGIN PFP */
+int stringComp(char c1[], char c2[])
+{
+  if (sizeof(c1) != sizeof(c2))
+  {
+    return 0;
+  }
+
+  for (j = 0; j < 20; j++)
+    if (c1[j] != c2[j])
+      return 0;
+
+  return 1;
+}
+
+void resetTemp()
+{
+  for (i = 0; i < 20; i++)
+    temp[i] = NULL;
+}
 
 /* USER CODE END PFP */
 
@@ -59,7 +92,77 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  HAL_UART_Transmit(&huart1, &input, sizeof(input), 0);
+  if (input == '\n')
+  {
+    if (state == 0)
+    {
+      if (tempIndex == 2)
+      {
+        if (temp[0] == '1')
+        {
+          state = 1;
+          HAL_UART_Transmit(&huart1, "\nEnter username:\r\n", 18, HAL_MAX_DELAY);
+        }
+        else if (temp[0] == '2')
+        {
+          state = 3;
+          HAL_UART_Transmit(&huart1, "\nEnter username:\r\n", 18, HAL_MAX_DELAY);
+        }
+        else
+          HAL_UART_Transmit(&huart1, "\nChoose 1 or 2:\r\n", 17, HAL_MAX_DELAY);
+      }
+      else
+        HAL_UART_Transmit(&huart1, "\nInvalid input! Try again!\r\n", 27, HAL_MAX_DELAY);
+      tempIndex = 0;
+    }
+    else if (state == 1)
+    {
+      for (i = 0; i < usersIndex; i++)
+      {
+        if (stringComp(users[i].username, temp) == 1)
+        {
+          HAL_UART_Transmit(&huart1, "\nUsername taken!\r\nPlease choose another one:\r\n", 46, HAL_MAX_DELAY);
+          break;
+        }
+      }
+      if (i == usersIndex)
+      {
+        for (i = 0; i < tempIndex; i++)
+        {
+          users[usersIndex].username[i] = temp[i];
+        }
+        HAL_UART_Transmit(&huart1, "\nEnter password:\r\n", 18, HAL_MAX_DELAY);
+        state = 2;
+      }
+      tempIndex = 0;
+    }
+    else if (state == 2)
+    {
+      for (i = 0; i < tempIndex; i++)
+      {
+        users[usersIndex].password[i] = temp[i];
+      }
+      HAL_UART_Transmit(&huart1, "\nUser registered!\r\n", 19, HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart1, menu, sizeof(menu), HAL_MAX_DELAY);
+      tempIndex = 0;
+      state = 0;
+      usersIndex++;
+    }
+    else if (state == 3)
+    {
+      HAL_UART_Transmit(&huart1, "\nstate 3", 8, HAL_MAX_DELAY);
+    }
+    else if (state == 4)
+    {
+      HAL_UART_Transmit(&huart1, "\nstate 4", 8, HAL_MAX_DELAY);
+    }
+    resetTemp();
+  }
+  else
+  {
+    temp[tempIndex++] = input;
+    HAL_UART_Transmit(&huart1, &input, sizeof(input), 0);
+  }
 
   HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 
