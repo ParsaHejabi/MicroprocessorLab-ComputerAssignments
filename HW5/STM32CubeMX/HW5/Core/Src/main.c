@@ -53,7 +53,8 @@ uint8_t menu[] = "1- Sign up\r\n2- Sign in\r\n";
 uint8_t input;
 char temp[20];
 uint8_t tempIndex = 0;
-int i, j;
+
+int i, j, k;
 int usersIndex = 0;
 // 0 -> get menu; 1 -> SU username; 2 -> SU password; 3 -> SI username; 4 -> SI password;
 int state = 0;
@@ -150,11 +151,40 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     else if (state == 3)
     {
-      HAL_UART_Transmit(&huart1, "\nstate 3", 8, HAL_MAX_DELAY);
+      //HAL_UART_Transmit(&huart1, "\nstate 3", 8, HAL_MAX_DELAY);
+			
+			int flag =0;
+			for (i = 0; i < usersIndex; i++)
+      {
+        if (stringComp(users[i].username, temp) == 1){
+					HAL_UART_Transmit(&huart1, "\nExists!\r\n", 8, HAL_MAX_DELAY);
+					k = i;
+					flag =1;
+				}
+      }
+			if (flag){
+				HAL_UART_Transmit(&huart1, "\nEnter password:\r\n", 18, HAL_MAX_DELAY);
+				state = 4;
+			}
+			else{
+				HAL_UART_Transmit(&huart1, "\nUser not exists, try again later!\r\n", 36, HAL_MAX_DELAY);
+				HAL_UART_Transmit(&huart1, menu, sizeof(menu), HAL_MAX_DELAY);
+				state =0;
+			}
+			tempIndex = 0;
+      
     }
     else if (state == 4)
     {
-      HAL_UART_Transmit(&huart1, "\nstate 4", 8, HAL_MAX_DELAY);
+      //HAL_UART_Transmit(&huart1, "\nstate 4", 8, HAL_MAX_DELAY);
+			
+				if (stringComp(users[k].password, temp) == 1)
+					HAL_UART_Transmit(&huart1, "\nLogged in!\r\n", 13, HAL_MAX_DELAY);
+				else if (stringComp(users[k].password, temp) != 1)
+					HAL_UART_Transmit(&huart1, "\nIncorrect Pass, try again later!\r\n", 35, HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart1, menu, sizeof(menu), HAL_MAX_DELAY);
+      tempIndex = 0;
+      state = 0;
     }
     resetTemp();
   }
