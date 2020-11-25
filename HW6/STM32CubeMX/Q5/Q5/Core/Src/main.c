@@ -89,6 +89,9 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+ 
+ 	HAL_TIM_Base_Start(&htim5);               //Initialize stm32 timer 3
+	HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_1);  //PB0 Start pwm second motor 100% duty cycle
 
   /* USER CODE END 2 */
 
@@ -96,13 +99,22 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
+		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,75); //Second motor 75% voltage
+		
+		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
+		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,5); //Second motor 75% voltage
+		
+		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
+		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,25); //Second motor 75% voltage
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+  
   /* USER CODE END 3 */
+	}
 }
-
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -169,7 +181,7 @@ static void MX_TIM5_Init(void)
   htim5.Instance = TIM5;
   htim5.Init.Prescaler = 84;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 2000;
+  htim5.Init.Period = 1999;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
