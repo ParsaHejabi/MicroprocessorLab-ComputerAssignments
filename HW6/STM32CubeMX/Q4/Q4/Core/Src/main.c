@@ -50,6 +50,13 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 int displayOn = 1;
 int cursorOn = 1;
+
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+uint8_t Is_First_Captured = 0;
+
+unsigned char buf[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,7 +78,37 @@ void lcdPuts(const char *string);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	if (Is_First_Captured==0)
+		{
+			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+        //buf[0] = IC_Val1 >> 24;
+        //buf[1] = IC_Val1 >> 16;
+        //buf[2] = IC_Val1 >> 8;
+        //buf[3] = IC_Val1;
+			
+			//lcdPutchar(buf[0]);
+			
+			Is_First_Captured = 1;
+			
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+		}
 
+		else if (Is_First_Captured==1)
+		{
+			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			__HAL_TIM_SET_COUNTER(htim, 0);
+
+			if (IC_Val2 > IC_Val1)
+			{
+				Difference = IC_Val2-IC_Val1;
+			}
+
+			Is_First_Captured = 0;
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+
+		}
+}
 /* USER CODE END 0 */
 
 /**
@@ -104,12 +141,8 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+	HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
 	lcdInit(ROW_COUNT);
-	lcdPutchar('h');
-  lcdPutchar('o');
-  lcdPutchar('m');
-  lcdPutchar('e');
-  HAL_Delay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,7 +150,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+		if (Difference > 0) {
+			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+			
+			lcdPutchar('S');
+			
+			HAL_Delay(1000);
+			Difference = 0;
+		}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -196,7 +236,7 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 15;
@@ -229,6 +269,9 @@ static void MX_GPIO_Init(void)
                           |D4_Pin|D5_Pin|D6_Pin|D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RS_Pin|RW_Pin|EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : D0_Pin D1_Pin D2_Pin D3_Pin
@@ -239,6 +282,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RS_Pin RW_Pin EN_Pin */
   GPIO_InitStruct.Pin = RS_Pin|RW_Pin|EN_Pin;
