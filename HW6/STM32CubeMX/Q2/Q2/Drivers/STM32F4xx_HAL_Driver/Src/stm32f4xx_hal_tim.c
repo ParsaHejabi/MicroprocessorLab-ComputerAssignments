@@ -3290,6 +3290,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
     }
   }
   /* TIM Update event */
+	HAL_TIM_PeriodElapsedCallback(htim);
   if (__HAL_TIM_GET_FLAG(htim, TIM_FLAG_UPDATE) != RESET)
   {
     if (__HAL_TIM_GET_IT_SOURCE(htim, TIM_IT_UPDATE) != RESET)
