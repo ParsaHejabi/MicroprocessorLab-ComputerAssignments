@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * File Name          : stm32f4xx_hal_msp.c
-  * Description        : This file provides code for the MSP Initialization
-  *                      and de-Initialization codes.
+  * @file         stm32f4xx_hal_msp.c
+  * @brief        This file provides code for the MSP Initialization
+  *               and de-Initialization codes.
   ******************************************************************************
   * @attention
   *
@@ -80,14 +80,14 @@ void HAL_MspInit(void)
 }
 
 /**
-* @brief TIM_Base MSP Initialization
+* @brief TIM_PWM MSP Initialization
 * This function configures the hardware resources used in this example
-* @param htim_base: TIM_Base handle pointer
+* @param htim_pwm: TIM_PWM handle pointer
 * @retval None
 */
-void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
+void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
-  if(htim_base->Instance==TIM5)
+  if(htim_pwm->Instance==TIM5)
   {
   /* USER CODE BEGIN TIM5_MspInit 0 */
 
@@ -131,14 +131,14 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 
 }
 /**
-* @brief TIM_Base MSP De-Initialization
+* @brief TIM_PWM MSP De-Initialization
 * This function freeze the hardware resources used in this example
-* @param htim_base: TIM_Base handle pointer
+* @param htim_pwm: TIM_PWM handle pointer
 * @retval None
 */
-void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
+void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 {
-  if(htim_base->Instance==TIM5)
+  if(htim_pwm->Instance==TIM5)
   {
   /* USER CODE BEGIN TIM5_MspDeInit 0 */
 

@@ -89,32 +89,28 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
- 
- 	HAL_TIM_Base_Start(&htim5);               //Initialize stm32 timer 3
-	HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_1);  //PB0 Start pwm second motor 100% duty cycle
-
+	HAL_TIM_Base_Start(&htim5);
+	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
-		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,75); //Second motor 75% voltage
-		
-		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
-		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,5); //Second motor 75% voltage
-		
-		HAL_Delay(1000); //Delay for 3 seconds to stop motor properly
-		__HAL_TIM_SET_COMPARE(&htim5,TIM_CHANNEL_1,25); //Second motor 75% voltage
-    /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
-  
-  /* USER CODE END 3 */
-	}
+		__HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, 75000);
+		HAL_Delay(1000);
+		
+		__HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, 50000);
+		HAL_Delay(1000);
+		
+		__HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, 25000);
+		HAL_Delay(1000);
+		/* USER CODE END 3 */
+  }
+	/* USER CODE END WHILE */
 }
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -171,7 +167,6 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE END TIM5_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
 
@@ -181,18 +176,9 @@ static void MX_TIM5_Init(void)
   htim5.Instance = TIM5;
   htim5.Init.Prescaler = 84;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 1999;
+  htim5.Init.Period = 99999;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
   {
     Error_Handler();
@@ -243,7 +229,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -259,7 +248,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
