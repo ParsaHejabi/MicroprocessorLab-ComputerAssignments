@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +57,9 @@ uint32_t IC_Val2 = 0;
 uint32_t Difference = 0;
 uint8_t Is_First_Captured = 0;
 
-unsigned char buf[4];
+char textToWrite[7];
+int done = 0;
+int convertSuccessful = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,36 +81,31 @@ void lcdPuts(const char *string);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	if (Is_First_Captured==0)
-		{
-			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-        //buf[0] = IC_Val1 >> 24;
-        //buf[1] = IC_Val1 >> 16;
-        //buf[2] = IC_Val1 >> 8;
-        //buf[3] = IC_Val1;
-			
-			//lcdPutchar(buf[0]);
-			
-			Is_First_Captured = 1;
-			
-			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-		}
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+  if (Is_First_Captured == 0)
+  {
+    IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
-		else if (Is_First_Captured==1)
-		{
-			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-			__HAL_TIM_SET_COUNTER(htim, 0);
+    Is_First_Captured = 1;
 
-			if (IC_Val2 > IC_Val1)
-			{
-				Difference = IC_Val2-IC_Val1;
-			}
+    __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+  }
 
-			Is_First_Captured = 0;
-			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+  else
+  {
+    IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+    __HAL_TIM_SET_COUNTER(htim, 0);
 
-		}
+    if (IC_Val2 > IC_Val1)
+    {
+      Difference = IC_Val2 - IC_Val1;
+      done = 1;
+    }
+
+    Is_First_Captured = 0;
+    __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+  }
 }
 /* USER CODE END 0 */
 
@@ -141,8 +139,8 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-	HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
-	lcdInit(ROW_COUNT);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
+  lcdInit(ROW_COUNT);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,14 +148,25 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-		if (Difference > 0) {
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-			
-			lcdPutchar('S');
-			
-			HAL_Delay(1000);
-			Difference = 0;
-		}
+    if (done)
+    {
+      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+
+      //lcdPuts("sa");
+      convertSuccessful = sprintf(textToWrite, "%lu", Difference);
+
+      if (convertSuccessful > 0)
+      {
+        lcdPuts(textToWrite);
+        lcdPuts(" ms");
+
+        HAL_Delay(500);
+      }
+
+      lcdClear();
+      lcdHome();
+      done = 0;
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -189,8 +198,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -247,7 +255,6 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
-
 }
 
 /**
@@ -265,19 +272,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, D0_Pin|D1_Pin|D2_Pin|D3_Pin
-                          |D4_Pin|D5_Pin|D6_Pin|D7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, D0_Pin | D1_Pin | D2_Pin | D3_Pin | D4_Pin | D5_Pin | D6_Pin | D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RS_Pin|RW_Pin|EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RS_Pin | RW_Pin | EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : D0_Pin D1_Pin D2_Pin D3_Pin
                            D4_Pin D5_Pin D6_Pin D7_Pin */
-  GPIO_InitStruct.Pin = D0_Pin|D1_Pin|D2_Pin|D3_Pin
-                          |D4_Pin|D5_Pin|D6_Pin|D7_Pin;
+  GPIO_InitStruct.Pin = D0_Pin | D1_Pin | D2_Pin | D3_Pin | D4_Pin | D5_Pin | D6_Pin | D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -291,161 +296,160 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RS_Pin RW_Pin EN_Pin */
-  GPIO_InitStruct.Pin = RS_Pin|RW_Pin|EN_Pin;
+  GPIO_InitStruct.Pin = RS_Pin | RW_Pin | EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */
 int lcdInit(int row)
 {
-    HAL_Delay(30); /* initialization sequence */
-    if (row == 1)
-    {
-        lcdSendCommand(0x30); /* set 8-bit data, 1-line, 5x7 font */
-    }
-    else
-    {
-        lcdSendCommand(0x38); /* set 8-bit data, 2-line, 5x7 font */
-    }
+  HAL_Delay(30); /* initialization sequence */
+  if (row == 1)
+  {
+    lcdSendCommand(0x30); /* set 8-bit data, 1-line, 5x7 font */
+  }
+  else
+  {
+    lcdSendCommand(0x38); /* set 8-bit data, 2-line, 5x7 font */
+  }
 
-    lcdSendCommand(0x0F); /* turn on display, cursor blinking */
+  lcdSendCommand(0x0F); /* turn on display, cursor blinking */
 
-    lcdSendCommand(0x01); /* clear screen, move cursor to home */
+  lcdSendCommand(0x01); /* clear screen, move cursor to home */
 
-    lcdSendCommand(0x06); /* move cursor right after each char */
-    return 0;
+  lcdSendCommand(0x06); /* move cursor right after each char */
+  return 0;
 }
 
 void lcdHome(void)
 {
-    lcdSendCommand(0x02);
-    return;
+  lcdSendCommand(0x02);
+  return;
 }
 
 void lcdClear(void)
 {
-    lcdSendCommand(0x01);
-    return;
+  lcdSendCommand(0x01);
+  return;
 }
 
 void lcdDisplay(void)
 {
-    if (displayOn)
-    {
-        displayOn = 0;
-        lcdSendCommand(0x08); /* display off, cursor off, blink off */
-    }
-    else
-    {
-        displayOn = 1;
-        lcdSendCommand(0x0F);
-    }
-    return;
+  if (displayOn)
+  {
+    displayOn = 0;
+    lcdSendCommand(0x08); /* display off, cursor off, blink off */
+  }
+  else
+  {
+    displayOn = 1;
+    lcdSendCommand(0x0F);
+  }
+  return;
 }
 
 void lcdCursor(void)
 {
-    if (cursorOn)
-    {
-        cursorOn = 0;
-        lcdSendCommand(0x0C);
-    }
-    else
-    {
-        cursorOn = 1;
-        lcdSendCommand(0x0F);
-    }
-    return;
+  if (cursorOn)
+  {
+    cursorOn = 0;
+    lcdSendCommand(0x0C);
+  }
+  else
+  {
+    cursorOn = 1;
+    lcdSendCommand(0x0F);
+  }
+  return;
 }
 
 void lcdCursorBlink(int state)
 {
-    if (state)
-    {
-        lcdSendCommand(0x0F);
-    }
-    else
-    {
-        lcdSendCommand(0x0E);
-    }
-    return;
+  if (state)
+  {
+    lcdSendCommand(0x0F);
+  }
+  else
+  {
+    lcdSendCommand(0x0E);
+  }
+  return;
 }
 
 void lcdSendCommand(unsigned char command)
 {
-    GPIOB->BSRR = (RS | RW) << 16; /* RS = 0, R/W = 0 */
-    GPIOC->ODR = command;          /* put command on data bus */
-    GPIOB->BSRR = EN;              /* pulse E high */
-    HAL_Delay(0);
-    GPIOB->BSRR = EN << 16; /* clear E */
+  GPIOB->BSRR = (RS | RW) << 16; /* RS = 0, R/W = 0 */
+  GPIOC->ODR = command;          /* put command on data bus */
+  GPIOB->BSRR = EN;              /* pulse E high */
+  HAL_Delay(0);
+  GPIOB->BSRR = EN << 16; /* clear E */
 
-    if (command < 4)
-        HAL_Delay(2); /* command 1 and 2 needs up to 1.64ms */
-    else
-        HAL_Delay(1); /* all others 40 us */
-    return;
+  if (command < 4)
+    HAL_Delay(2); /* command 1 and 2 needs up to 1.64ms */
+  else
+    HAL_Delay(1); /* all others 40 us */
+  return;
 }
 
 void lcdPosition(int x, int y)
 {
-    int i = 0;
-    switch (y)
-    {
-    case 1:
-    {
-        lcdSendCommand(0x80);
-        break;
-    }
-    case 2:
-    {
-        lcdSendCommand(0xC0);
-        break;
-    }
-    case 3:
-    {
-        lcdSendCommand(0x90);
-        break;
-    }
-    case 4:
-    {
-        lcdSendCommand(0xD0);
-        break;
-    }
-    }
+  int i = 0;
+  switch (y)
+  {
+  case 1:
+  {
+    lcdSendCommand(0x80);
+    break;
+  }
+  case 2:
+  {
+    lcdSendCommand(0xC0);
+    break;
+  }
+  case 3:
+  {
+    lcdSendCommand(0x90);
+    break;
+  }
+  case 4:
+  {
+    lcdSendCommand(0xD0);
+    break;
+  }
+  }
 
-    for (i = 0; i < x; i++)
-    {
-        lcdSendCommand(0x14);
-    }
-    return;
+  for (i = 0; i < x; i++)
+  {
+    lcdSendCommand(0x14);
+  }
+  return;
 }
 
 void lcdPutchar(unsigned char data)
 {
-    GPIOB->BSRR = RS;       /* RS = 1 */
-    GPIOB->BSRR = RW << 16; /* R/W = 0 */
-    GPIOC->ODR = data;      /* put data on data bus */
-    GPIOB->BSRR = EN;       /* pulse E high */
-    HAL_Delay(0);
-    GPIOB->BSRR = EN << 16; /* clear E */
+  GPIOB->BSRR = RS;       /* RS = 1 */
+  GPIOB->BSRR = RW << 16; /* R/W = 0 */
+  GPIOC->ODR = data;      /* put data on data bus */
+  GPIOB->BSRR = EN;       /* pulse E high */
+  HAL_Delay(0);
+  GPIOB->BSRR = EN << 16; /* clear E */
 
-    HAL_Delay(1);
-    return;
+  HAL_Delay(1);
+  return;
 }
 
 void lcdPuts(const char *string)
 {
-    int i = 0;
-    for (i = 0; i < strlen(string); i++)
-    {
-        lcdPutchar(string[i]);
-        HAL_Delay(10);
-    }
-    return;
+  int i = 0;
+  for (i = 0; i < strlen(string); i++)
+  {
+    lcdPutchar(string[i]);
+    HAL_Delay(10);
+  }
+  return;
 }
 /* USER CODE END 4 */
 
@@ -464,7 +468,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
