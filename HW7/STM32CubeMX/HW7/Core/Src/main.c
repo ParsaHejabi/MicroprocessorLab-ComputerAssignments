@@ -74,7 +74,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
   char uart_buf[100];
   int uart_buf_len;
-  char spi_buf[100];
+  uint8_t spi_buf[100];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -135,21 +135,19 @@ int main(void)
     // HAL_Delay(1000);
 
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_ADD, 1, 100);
-    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_VALUE, 1, 100);
+    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_ADD, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_VALUE, 1, HAL_MAX_DELAY);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
     HAL_Delay(200);
 
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    HAL_SPI_Transmit(&hspi1, &TC72_LSB_TEMP_ADD, 1, 100);
-    HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
+    HAL_SPI_Transmit(&hspi1, &TC72_MSB_TEMP_ADD, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&hspi1, spi_buf, 1, HAL_MAX_DELAY);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
-    int received = (unsigned int)spi_buf[0];
-
-    uart_buf_len = sprintf(uart_buf, "Received: %i\r\n", received);
-    HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
+    uart_buf_len = sprintf(uart_buf, "Received: %i\r\n", spi_buf[0]);
+    HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, HAL_MAX_DELAY);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
