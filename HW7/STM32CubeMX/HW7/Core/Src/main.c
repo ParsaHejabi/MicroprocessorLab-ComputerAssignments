@@ -98,30 +98,8 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-
-  uart_buf_len = sprintf(uart_buf, "SPI Test\r\n");
+  uart_buf_len = sprintf(uart_buf, "SPI Temperature Sensor:\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
-
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_CONTROL_REGISTER_ADD, 1, 100);
-  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_CONTROL_REGISTER_VALUE, 1, 100);
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-
-  // HAL_Delay(200);
-
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_LSB_TEMP_ADD, 1, 100);
-  // HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-
-  // uart_buf_len = sprintf(uart_buf, "Received: ", (uint8_t *)spi_buf, "\r\n");
-  // HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,8 +124,19 @@ int main(void)
     HAL_SPI_Receive(&hspi1, spi_buf, 1, HAL_MAX_DELAY);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
-    uart_buf_len = sprintf(uart_buf, "Received: %i\r\n", spi_buf[0]);
-    HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, HAL_MAX_DELAY);
+    int temp = spi_buf[0];
+
+    if (temp <= 125)
+    {
+      uart_buf_len = sprintf(uart_buf, "Received: %d\r\n", temp);
+      HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, HAL_MAX_DELAY);
+    }
+    else
+    {
+      temp = temp - 256;
+      uart_buf_len = sprintf(uart_buf, "Received: %d\r\n", temp);
+      HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, HAL_MAX_DELAY);
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -212,7 +201,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
