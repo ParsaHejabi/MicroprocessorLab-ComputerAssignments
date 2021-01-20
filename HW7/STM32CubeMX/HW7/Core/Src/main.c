@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,6 +33,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define RS 0x20 /* PB5 mask for reg select */
+#define RW 0x40 /* PB6 mask for read/write */
+#define EN 0x80 /* PB7 mask for enable */
+
+#define ROW_COUNT 2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,6 +55,11 @@ uint8_t TC72_CONTROL_REGISTER_ADD = 0x80;
 uint8_t TC72_CONTROL_REGISTER_VALUE = 0x04;
 uint8_t TC72_LSB_TEMP_ADD = 0x01;
 uint8_t TC72_MSB_TEMP_ADD = 0x02;
+
+int displayOn = 1;
+int cursorOn = 1;
+
+char textToWrite[7];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,7 +68,16 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+int lcdInit(int row);
+void lcdHome(void);
+void lcdClear(void);
+void lcdDisplay(void);
+void lcdCursor(void);
+void lcdCursorBlink(int state);
+void lcdSendCommand(unsigned char command);
+void lcdPosition(int x, int y);
+void lcdPutchar(unsigned char data);
+void lcdPuts(const char *string);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -98,6 +118,8 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  lcdInit(ROW_COUNT);
+
   uart_buf_len = sprintf(uart_buf, "SPI Temperature Sensor:\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
   /* USER CODE END 2 */
@@ -112,17 +134,17 @@ int main(void)
     // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
     // HAL_Delay(1000);
 
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
     HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_ADD, 1, HAL_MAX_DELAY);
     HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_VALUE, 1, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
 
     HAL_Delay(200);
 
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
     HAL_SPI_Transmit(&hspi1, &TC72_MSB_TEMP_ADD, 1, HAL_MAX_DELAY);
     HAL_SPI_Receive(&hspi1, spi_buf, 1, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
 
     int temp = spi_buf[0];
 
@@ -137,6 +159,14 @@ int main(void)
       uart_buf_len = sprintf(uart_buf, "Received: %d\r\n", temp);
       HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, HAL_MAX_DELAY);
     }
+
+    int textToWriteLen = sprintf(textToWrite, "Temp: %d", temp);
+
+    lcdPuts(textToWrite);
+    HAL_Delay(500);
+
+    lcdClear();
+    lcdHome();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -284,7 +314,153 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int lcdInit(int row)
+{
+  HAL_Delay(30); /* initialization sequence */
+  if (row == 1)
+  {
+    lcdSendCommand(0x30); /* set 8-bit data, 1-line, 5x7 font */
+  }
+  else
+  {
+    lcdSendCommand(0x38); /* set 8-bit data, 2-line, 5x7 font */
+  }
 
+  lcdSendCommand(0x0F); /* turn on display, cursor blinking */
+
+  lcdSendCommand(0x01); /* clear screen, move cursor to home */
+
+  lcdSendCommand(0x06); /* move cursor right after each char */
+  return 0;
+}
+
+void lcdHome(void)
+{
+  lcdSendCommand(0x02);
+  return;
+}
+
+void lcdClear(void)
+{
+  lcdSendCommand(0x01);
+  return;
+}
+
+void lcdDisplay(void)
+{
+  if (displayOn)
+  {
+    displayOn = 0;
+    lcdSendCommand(0x08); /* display off, cursor off, blink off */
+  }
+  else
+  {
+    displayOn = 1;
+    lcdSendCommand(0x0F);
+  }
+  return;
+}
+
+void lcdCursor(void)
+{
+  if (cursorOn)
+  {
+    cursorOn = 0;
+    lcdSendCommand(0x0C);
+  }
+  else
+  {
+    cursorOn = 1;
+    lcdSendCommand(0x0F);
+  }
+  return;
+}
+
+void lcdCursorBlink(int state)
+{
+  if (state)
+  {
+    lcdSendCommand(0x0F);
+  }
+  else
+  {
+    lcdSendCommand(0x0E);
+  }
+  return;
+}
+
+void lcdSendCommand(unsigned char command)
+{
+  GPIOB->BSRR = (RS | RW) << 16; /* RS = 0, R/W = 0 */
+  GPIOC->ODR = command;          /* put command on data bus */
+  GPIOB->BSRR = EN;              /* pulse E high */
+  HAL_Delay(0);
+  GPIOB->BSRR = EN << 16; /* clear E */
+
+  if (command < 4)
+    HAL_Delay(2); /* command 1 and 2 needs up to 1.64ms */
+  else
+    HAL_Delay(1); /* all others 40 us */
+  return;
+}
+
+void lcdPosition(int x, int y)
+{
+  int i = 0;
+  switch (y)
+  {
+  case 1:
+  {
+    lcdSendCommand(0x80);
+    break;
+  }
+  case 2:
+  {
+    lcdSendCommand(0xC0);
+    break;
+  }
+  case 3:
+  {
+    lcdSendCommand(0x90);
+    break;
+  }
+  case 4:
+  {
+    lcdSendCommand(0xD0);
+    break;
+  }
+  }
+
+  for (i = 0; i < x; i++)
+  {
+    lcdSendCommand(0x14);
+  }
+  return;
+}
+
+void lcdPutchar(unsigned char data)
+{
+  GPIOB->BSRR = RS;       /* RS = 1 */
+  GPIOB->BSRR = RW << 16; /* R/W = 0 */
+  GPIOC->ODR = data;      /* put data on data bus */
+  GPIOB->BSRR = EN;       /* pulse E high */
+  HAL_Delay(0);
+  GPIOB->BSRR = EN << 16; /* clear E */
+
+  HAL_Delay(1);
+  return;
+}
+
+void lcdPuts(const char *string)
+{
+  int i = 0;
+  for (i = 0; i < strlen(string); i++)
+  {
+    lcdPutchar(string[i]);
+    HAL_Delay(10);
+  }
+  return;
+}
 /* USER CODE END 4 */
 
 /**
