@@ -45,7 +45,10 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint8_t menu[] = "1- Sign Up\r\n2- Sign In\r\n";
+uint8_t TC72_CONTROL_REGISTER_ADD = 0x80;
+uint8_t TC72_CONTROL_REGISTER_VALUE = 0x04;
+uint8_t TC72_LSB_TEMP_ADD = 0x01;
+uint8_t TC72_MSB_TEMP_ADD = 0x02;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,9 +72,9 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  char uart_buf[50];
+  char uart_buf[100];
   int uart_buf_len;
-  char spi_buf[20];
+  char spi_buf[100];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -95,17 +98,29 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
   uart_buf_len = sprintf(uart_buf, "SPI Test\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_CONTROL_REGISTER_ADD, 1, 100);
+  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_CONTROL_REGISTER_VALUE, 1, 100);
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
-  uart_buf_len = sprintf(uart_buf, "Received: ", (unsigned int)spi_buf[0], "\r\n");
-  HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
+  // HAL_Delay(200);
+
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &TC72_LSB_TEMP_ADD, 1, 100);
+  // HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+
+  // uart_buf_len = sprintf(uart_buf, "Received: ", (uint8_t *)spi_buf, "\r\n");
+  // HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
 
   /* USER CODE END 2 */
 
@@ -114,10 +129,25 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
-    HAL_Delay(1000);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-    HAL_Delay(1000);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+    // HAL_Delay(1000);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+    // HAL_Delay(1000);
+
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_ADD, 1, 100);
+    HAL_SPI_Transmit(&hspi1, &TC72_CONTROL_REGISTER_VALUE, 1, 100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+
+    HAL_Delay(200);
+
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_SPI_Transmit(&hspi1, &TC72_MSB_TEMP_ADD, 1, 100);
+    HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+
+    uart_buf_len = sprintf(uart_buf, "Received: %s\r\n", (uint8_t *)spi_buf);
+    HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf, uart_buf_len, 100);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
