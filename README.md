@@ -5,7 +5,7 @@
 
 <!-- PROJECT SHIELDS -->
 
-[![Contributors][contributors-shield]][contributors-url]
+<!-- [![Contributors][contributors-shield]][contributors-url] -->
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
@@ -24,7 +24,7 @@
   <p align="center">
     Homework given to the students in Shahid Beheshti University Microprocessor Lab in the Fall 2020 term.
     <br />
-    Parsa Hejabi | Niki Nazaran
+    Parsa Hejabi
     <!-- <br />
     <a href="https://github.com/ParsaHejabi/MicroprocessorLab-ComputerAssignments"><strong>Explore the docs »</strong></a>
     <br />
@@ -49,6 +49,9 @@
 - [HW2](#HW2)
 - [HW3](#HW3)
 - [HW4](#HW4)
+- [HW5](#HW5)
+- [HW6](#HW6)
+- [HW7](#HW7)
 - [Contact](#contact)
 
   <!-- - [Prerequisites](#prerequisites) -->
@@ -127,6 +130,18 @@ Wrote different functions to send commands and character data to an LCD. The LCD
 ## HW4
 
 A graphical LCD is programmed with different functions using `STM32CubeMX`.
+
+## HW5
+
+An authentication system using USART which uses a terminal and a microcontroller to interact with the user.
+
+## HW6
+
+Usage of timers, and PWM in microcontroller.
+
+## HW7
+
+Connecting a temperature sensor which uses I2C protocol to send temperature to a microcontroller and print it on a LCD.
 
 <!-- USAGE EXAMPLES -->
 
